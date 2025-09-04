@@ -1,0 +1,14 @@
+{
+  "artisan": {
+    "Name": "artisan",
+    "Count": 1,
+    "TotalTime": 4502502,
+    "LastUsed": "2025-09-04T14:33:06.080954878-07:00"
+  },
+  "migrate": {
+    "Name": "migrate",
+    "Count": 1,
+    "TotalTime": 46261249,
+    "LastUsed": "2025-09-04T13:48:15.897456998-07:00"
+  }
+}
