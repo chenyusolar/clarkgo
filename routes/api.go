@@ -15,9 +15,10 @@ func APIRoutes(app *framework.Application) {
 		r.POST("/login", userController.Login)
 
 		// 需要认证的路由
-		authGroup := r.Group("/user", middleware.JWTMiddleware(app))
+		authGroup := r.Group("/user", middleware.JWTMiddleware())
 		{
 			authGroup.GET("/profile", userController.Profile)
+			authGroup.PUT("/profile", userController.UpdateProfile)
 		}
 	})
 }

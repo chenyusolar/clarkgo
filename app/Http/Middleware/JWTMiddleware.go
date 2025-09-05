@@ -1,29 +1,55 @@
 package middleware
 
 import (
+	"context"
+	"strings"
+
+	"github.com/clarkgo/clarkgo/internal/app/services"
 	"github.com/clarkgo/clarkgo/pkg/framework"
-	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/golang-jwt/jwt/v5"
 )
 
-func JWTMiddleware(app *framework.Application) app.HandlerFunc {
-	return func(ctx *app.RequestContext) {
-		// JWT验证逻辑
-		tokenString := ctx.GetHeader("Authorization")
-		if tokenString == "" {
-			ctx.AbortWithStatusJSON(401, map[string]string{"error": "Authorization header missing"})
+// JWTMiddleware JWT认证中间件
+func JWTMiddleware() framework.HandlerFunc {
+	userService := services.NewUserService()
+
+	return func(ctx context.Context, reqCtx *framework.RequestContext) {
+		// 获取Authorization头
+		authHeader := reqCtx.GetHeader("Authorization")
+		if authHeader == "" {
+			reqCtx.JSON(401, map[string]interface{}{
+				"error": "未提供授权令牌",
+			})
+			reqCtx.Abort()
 			return
 		}
 
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return []byte(app.Config.GetString("app.key")), nil
-		})
-
-		if err != nil || !token.Valid {
-			ctx.AbortWithStatusJSON(401, map[string]string{"error": "Invalid token"})
+		// 检查Bearer前缀
+		tokenParts := strings.Split(authHeader, " ")
+		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+			reqCtx.JSON(401, map[string]interface{}{
+				"error": "无效的授权格式，应为'Bearer {token}'",
+			})
+			reqCtx.Abort()
 			return
 		}
 
-		ctx.Next()
+		// 提取令牌
+		tokenString := tokenParts[1]
+
+		// 解析令牌
+		userID, err := userService.ParseJWT(tokenString)
+		if err != nil {
+			reqCtx.JSON(401, map[string]interface{}{
+				"error": "无效的令牌: " + err.Error(),
+			})
+			reqCtx.Abort()
+			return
+		}
+
+		// 将用户ID添加到上下文
+		reqCtx.Set("user_id", userID)
+
+		// 继续处理请求
+		reqCtx.Next(ctx)
 	}
 }
