@@ -51,18 +51,24 @@ func runArtisan() {
 	defer logFile.Close()
 
 	logger := log.New(logFile, "", log.LstdFlags)
-	logger.Printf("[%s] Command started: %s %v",
-		time.Now().Format("2006-01-02 15:04:05"),
-		os.Args[1],
-		os.Args[2:])
 
-	if len(os.Args) < 2 {
+	// Skip "artisan" argument if present
+	cmdArgs := os.Args[1:]
+	if len(cmdArgs) > 0 && cmdArgs[0] == "artisan" {
+		cmdArgs = cmdArgs[1:]
+	}
+
+	logger.Printf("[%s] Command started: %v",
+		time.Now().Format("2006-01-02 15:04:05"),
+		cmdArgs)
+
+	if len(cmdArgs) < 1 {
 		showHelp()
 		return
 	}
 
-	command := os.Args[1]
-	args := os.Args[2:]
+	command := cmdArgs[0]
+	args := cmdArgs[1:]
 
 	switch command {
 	case "ai:setup", "ai:chat", "ai:completion", "ai:models", "ai:test", "ai:config":
@@ -128,6 +134,22 @@ func runArtisan() {
 		commands.SetPriority(args)
 	case "queue:stats":
 		commands.ShowQueueStats(args)
+	case "schedule:work":
+		commands.ScheduleWork(args)
+	case "schedule:run":
+		commands.ScheduleRun(args)
+	case "schedule:list":
+		commands.ScheduleList(args)
+	case "event:test":
+		commands.EventTest(args)
+	case "event:list":
+		commands.EventList(args)
+	case "event:stats":
+		commands.EventStats(args)
+	case "ratelimit":
+		commands.RateLimitCommand(args)
+	case "health":
+		commands.HealthCommand(args)
 
 	default:
 		fmt.Printf("Unknown command: %s\n", command)
@@ -189,4 +211,16 @@ func showHelp() {
 	fmt.Println("  queue:clean\t\tClean old jobs")
 	fmt.Println("  queue:priority\tSet job priority")
 	fmt.Println("  queue:stats\t\tShow queue statistics")
+	fmt.Println("\nSchedule commands:")
+	fmt.Println("  schedule:work\t\tStart scheduler workers")
+	fmt.Println("  schedule:run\t\tRun scheduled tasks once")
+	fmt.Println("  schedule:list\t\tList scheduled tasks")
+	fmt.Println("\nEvent commands:")
+	fmt.Println("  event:test\t\tTest event system")
+	fmt.Println("  event:list\t\tList registered events")
+	fmt.Println("  event:stats\t\tShow event statistics")
+	fmt.Println("\nRate Limit commands:")
+	fmt.Println("  ratelimit demo\tRun rate limiting demonstration")
+	fmt.Println("\nHealth Check commands:")
+	fmt.Println("  health demo\t\tRun health check demonstration")
 }

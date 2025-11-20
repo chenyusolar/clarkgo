@@ -232,6 +232,6 @@ func createDefaultRolesAndPermissions() error {
 	return nil
 }
 
-func init() {
-	rootCmd.AddCommand(cmsInitCmd)
-}
+// func init() {
+// 	rootCmd.AddCommand(cmsInitCmd)
+// }

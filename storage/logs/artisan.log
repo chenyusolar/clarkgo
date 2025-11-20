@@ -6,3 +6,13 @@
 2025/09/04 13:48:15 [2025-09-04 13:48:15] Command completed in 46.261249ms
 2025/09/04 14:33:06 [2025-09-04 14:33:06] Command started: artisan [make:command TestCommand]
 2025/09/04 14:33:06 [2025-09-04 14:33:06] Command completed in 4.502502ms
+2025/11/19 17:32:52 [2025-11-19 17:32:52] Command started: artisan [event:test]
+2025/11/19 17:32:52 [2025-11-19 17:32:52] Command completed in 238.11µs
+2025/11/19 17:33:07 [2025-11-19 17:33:07] Command started: artisan [help]
+2025/11/19 17:33:07 [2025-11-19 17:33:07] Command completed in 244.632µs
+2025/11/19 17:34:03 [2025-11-19 17:34:03] Command started: [event:test]
+2025/11/19 17:34:04 [2025-11-19 17:34:04] Command completed in 1.201720621s
+2025/11/19 17:41:49 [2025-11-19 17:41:49] Command started: [ratelimit demo]
+2025/11/19 17:41:49 [2025-11-19 17:41:49] Command completed in 611.227µs
+2025/11/19 17:48:14 [2025-11-19 17:48:14] Command started: [health demo]
+2025/11/19 17:48:14 [2025-11-19 17:48:14] Command completed in 312.010077ms
