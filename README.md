@@ -1253,7 +1253,7 @@ open http://localhost:8888/swagger/index.html
 
 ## 📧 联系方式
 
-- 作者：Clark Chen
+- 作者：Clark Zhu
 - GitHub: [@chenyusolar](https://github.com/chenyusolar)
 - 项目地址: [https://github.com/chenyusolar/clarkgo](https://github.com/chenyusolar/clarkgo)
 
