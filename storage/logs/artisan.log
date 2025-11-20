@@ -16,3 +16,9 @@
 2025/11/19 17:41:49 [2025-11-19 17:41:49] Command completed in 611.227µs
 2025/11/19 17:48:14 [2025-11-19 17:48:14] Command started: [health demo]
 2025/11/19 17:48:14 [2025-11-19 17:48:14] Command completed in 312.010077ms
+2025/11/19 20:03:35 [2025-11-19 20:03:35] Command started: [exchange list]
+2025/11/19 20:03:35 [2025-11-19 20:03:35] Command completed in 248.824µs
+2025/11/19 20:04:15 [2025-11-19 20:04:15] Command started: [exchange list]
+2025/11/19 20:04:15 [2025-11-19 20:04:15] Command completed in 183.412µs
+2025/11/19 20:14:02 [2025-11-19 20:14:02] Command started: [exchange list]
+2025/11/19 20:14:02 [2025-11-19 20:14:02] Command completed in 208.309µs

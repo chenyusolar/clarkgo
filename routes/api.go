@@ -46,6 +46,12 @@ func APIRoutes(app *framework.Application) {
 	// 创建SEO控制器
 	seoController := controllers.NewSEOController("http://localhost:8888")
 
+	// 创建Web3控制器
+	web3Controller := &controllers.Web3Controller{}
+
+	// 创建Exchange控制器
+	exchangeController := &controllers.ExchangeController{}
+
 	app.RegisterRoutes(func(r *framework.Router) {
 		// SEO 路由（公开）
 		r.GET("/sitemap.xml", adapters.HertzToFramework(seoController.Sitemap))
@@ -133,6 +139,39 @@ func APIRoutes(app *framework.Application) {
 			cmsGroup.DELETE("/comments/:id", adapters.HertzToFramework(commentController.Delete))
 			cmsGroup.POST("/comments/:id/approve", adapters.HertzToFramework(commentController.Approve))
 			cmsGroup.POST("/comments/:id/spam", adapters.HertzToFramework(commentController.MarkAsSpam))
+		}
+
+		// Web3 路由（公开）
+		web3Group := r.Group("/api/web3")
+		{
+			// 区块链基本操作
+			web3Group.GET("/:chain/balance/:address", adapters.HertzToFramework(web3Controller.GetBalance))
+			web3Group.GET("/:chain/transaction/:hash", adapters.HertzToFramework(web3Controller.GetTransaction))
+			web3Group.GET("/:chain/block-number", adapters.HertzToFramework(web3Controller.GetBlockNumber))
+			web3Group.GET("/:chain/wallet/:address", adapters.HertzToFramework(web3Controller.GetWalletInfo))
+			web3Group.GET("/:chain/validate/:address", adapters.HertzToFramework(web3Controller.ValidateAddress))
+
+			// 支持的链列表
+			web3Group.GET("/chains", adapters.HertzToFramework(web3Controller.GetSupportedChains))
+
+			// 多链查询
+			web3Group.POST("/multi-balance", adapters.HertzToFramework(web3Controller.GetMultiChainBalances))
+		}
+
+		// Exchange 路由（公开）
+		exchangeGroup := r.Group("/api/exchange")
+		{
+			// 单交易所查询
+			exchangeGroup.GET("/:exchange/balance/:currency", adapters.HertzToFramework(exchangeController.GetBalance))
+			exchangeGroup.GET("/:exchange/balances", adapters.HertzToFramework(exchangeController.GetBalances))
+			exchangeGroup.GET("/:exchange/price/:pair", adapters.HertzToFramework(exchangeController.GetPrice))
+
+			// 支持的交易所列表
+			exchangeGroup.GET("/supported", adapters.HertzToFramework(exchangeController.GetSupportedExchanges))
+
+			// 多交易所查询
+			exchangeGroup.GET("/all/balance/:currency", adapters.HertzToFramework(exchangeController.GetAllBalances))
+			exchangeGroup.GET("/all/price/:pair", adapters.HertzToFramework(exchangeController.GetAllPrices))
 		}
 	})
 }

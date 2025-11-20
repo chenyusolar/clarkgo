@@ -150,6 +150,10 @@ func runArtisan() {
 		commands.RateLimitCommand(args)
 	case "health":
 		commands.HealthCommand(args)
+	case "web3":
+		commands.Web3Command(args)
+	case "exchange":
+		commands.ExchangeCommandWrapper(args)
 
 	default:
 		fmt.Printf("Unknown command: %s\n", command)
@@ -223,4 +227,19 @@ func showHelp() {
 	fmt.Println("  ratelimit demo\tRun rate limiting demonstration")
 	fmt.Println("\nHealth Check commands:")
 	fmt.Println("  health demo\t\tRun health check demonstration")
+	fmt.Println("\nWeb3 commands:")
+	fmt.Println("  web3 init\t\tInitialize Web3 clients")
+	fmt.Println("  web3 chains\t\tList supported chains")
+	fmt.Println("  web3 balance <chain> <address>\tGet address balance")
+	fmt.Println("  web3 transaction <chain> <hash>\tGet transaction details")
+	fmt.Println("  web3 block <chain>\tGet latest block number")
+	fmt.Println("  web3 wallet <chain> <address>\tGet wallet info")
+	fmt.Println("  web3 validate <chain> <address>\tValidate address format")
+	fmt.Println("\nExchange commands:")
+	fmt.Println("  exchange list\t\tList supported exchanges")
+	fmt.Println("  exchange balance <exchange> <currency>\tGet balance")
+	fmt.Println("  exchange balances <exchange>\tGet all balances")
+	fmt.Println("  exchange price <exchange> <pair>\tGet trading pair price")
+	fmt.Println("  exchange compare <pair>\tCompare prices across exchanges")
+	fmt.Println("  exchange balance-all <currency>\tGet balance across all exchanges")
 }

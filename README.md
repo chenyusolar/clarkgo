@@ -53,6 +53,27 @@ ClarkGo 是一个基于 CloudWeGo Hertz 框架开发的企业级 CMS 平台框�
 - ✅ Kubernetes 集成（Liveness/Readiness）
 - ✅ 完整的 HTTP 端点
 
+### 🌐 Web3 区块链集成
+- ✅ 多链支持（Bitcoin、Ethereum、BSC、Solana）
+- ✅ 地址余额查询
+- ✅ 交易信息查询
+- ✅ 区块高度查询
+- ✅ 钱包信息查询
+- ✅ 地址格式验证
+- ✅ Gas 价格查询（EVM 链）
+- ✅ SPL Token 支持（Solana）
+
+### 💱 加密货币交易所集成
+- ✅ 多交易所支持（Coinbase、KuCoin、Hyperliquid）
+- ✅ 中心化交易所（CEX）和去中心化交易所（DEX）
+- ✅ 账户余额查询
+- ✅ 交易对价格查询
+- ✅ 持仓信息查询（Hyperliquid）
+- ✅ 资金费率查询（Hyperliquid）
+- ✅ 跨交易所价格比较
+- ✅ 安全的 API 签名认证
+- ✅ HTTP API 和 CLI 命令
+
 ### 🎨 CMS 核心功能
 - ✅ 用户认证（JWT）
 - ✅ RBAC 权限管理
@@ -253,6 +274,85 @@ h.GET("/health/ready", framework.ReadinessEndpoint(hc))
 h.GET("/health/live", framework.LivenessEndpoint())
 ```
 
+### 7. Web3 区块链集成
+
+```go
+import (
+    "github.com/clarkgo/clarkgo/pkg/web3"
+    "context"
+    "time"
+)
+
+// 初始化 Web3 客户端
+web3.InitializeClients()
+manager := web3.GetManager()
+
+// 查询 Ethereum 余额
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+defer cancel()
+
+address := "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"
+balance, err := manager.GetBalance(ctx, web3.Ethereum, address)
+if err != nil {
+    panic(err)
+}
+log.Printf("ETH Balance: %s wei", balance)
+
+// 查询交易信息
+tx, err := manager.GetTransaction(ctx, web3.Ethereum, txHash)
+if err != nil {
+    panic(err)
+}
+log.Printf("Transaction: %+v", tx)
+
+// 多链余额查询
+addresses := web3.MultiChainAddress{
+    Bitcoin:  "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+    Ethereum: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+    BSC:      "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+    Solana:   "7EqQdEULxWcraVx3mXKFjc84LhCkMGZCkRuDpvcMwJeK",
+}
+balances, _ := addresses.GetAllBalances(ctx)
+for chain, balance := range balances {
+    log.Printf("%s: %s", chain, balance)
+}
+```
+
+### 8. 加密货币交易所集成
+
+```go
+import (
+    "github.com/clarkgo/clarkgo/pkg/web3"
+    "context"
+)
+
+// 初始化交易所客户端
+web3.InitializeClients()
+manager := web3.GetExchangeManager()
+
+ctx := context.Background()
+
+// 查询 Coinbase 余额
+balance, err := manager.GetBalance(ctx, web3.ExchangeCoinbase, "BTC")
+if err != nil {
+    panic(err)
+}
+log.Printf("BTC Balance: %s", balance)
+
+// 查询交易对价格
+price, err := manager.GetPrice(ctx, web3.ExchangeCoinbase, "BTC-USD")
+if err != nil {
+    panic(err)
+}
+log.Printf("BTC Price: $%s", price)
+
+// 跨交易所价格比较
+prices, _ := web3.GetAllExchangePrices(ctx, "BTC-USD")
+for exchange, price := range prices {
+    log.Printf("%s: $%s", exchange, price)
+}
+```
+
 ## 📁 项目结构
 
 ```
@@ -339,7 +439,19 @@ clarkgo/
 │   ├── seo/                   # SEO 工具
 │   ├── swagger/               # Swagger 文档
 │   ├── upload/                # 文件上传
-│   └── validator/             # 验证器
+│   ├── validator/             # 验证器
+│   └── web3/                  # Web3 区块链集成 ⭐
+│       ├── web3.go            # 核心接口
+│       ├── ethereum.go        # Ethereum/BSC 客户端
+│       ├── bitcoin.go         # Bitcoin 客户端
+│       ├── solana.go          # Solana 客户端
+│       ├── coinbase.go        # Coinbase 交易所 ⭐
+│       ├── kucoin.go          # KuCoin 交易所 ⭐
+│       ├── hyperliquid.go     # Hyperliquid DEX ⭐
+│       ├── exchange.go        # 交易所管理器 ⭐
+│       ├── config.go          # 配置管理
+│       ├── token.go           # 代币相关
+│       └── web3_test.go       # 测试
 │
 ├── routes/                     # 路由定义
 │   ├── api.go
@@ -419,6 +531,32 @@ artisan ratelimit demo
 ```bash
 # 运行健康检查演示
 artisan health demo
+```
+
+### Web3 区块链命令
+```bash
+# 初始化 Web3 客户端
+artisan web3 init
+
+# 查看支持的链
+artisan web3 chains
+
+# 查询地址余额
+artisan web3 balance ethereum 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+artisan web3 balance bitcoin 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+artisan web3 balance solana 7EqQdEULxWcraVx3mXKFjc84LhCkMGZCkRuDpvcMwJeK
+
+# 查询交易信息
+artisan web3 transaction ethereum 0x1234...
+
+# 获取最新区块
+artisan web3 block ethereum
+
+# 验证地址格式
+artisan web3 validate ethereum 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+
+# 获取钱包信息
+artisan web3 wallet ethereum 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
 ```
 
 ### 代码生成命令
@@ -836,7 +974,380 @@ spec:
           failureThreshold: 2
 ```
 
-### 6. CMS 功能
+### 6. Web3 区块链集成
+
+支持 Bitcoin、Ethereum、BSC、Solana 等多条公链：
+
+```go
+import "github.com/clarkgo/clarkgo/pkg/web3"
+
+// 初始化所有区块链客户端
+if err := web3.InitializeClients(); err != nil {
+    log.Fatal(err)
+}
+
+manager := web3.GetManager()
+ctx := context.Background()
+
+// ===== 查询地址余额 =====
+// Ethereum
+ethBalance, _ := manager.GetBalance(ctx, web3.Ethereum, "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0")
+fmt.Printf("ETH Balance: %s wei\n", ethBalance)
+
+// Bitcoin
+btcBalance, _ := manager.GetBalance(ctx, web3.Bitcoin, "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")
+fmt.Printf("BTC Balance: %s satoshi\n", btcBalance)
+
+// BSC (Binance Smart Chain)
+bscBalance, _ := manager.GetBalance(ctx, web3.BSC, "0x...")
+fmt.Printf("BNB Balance: %s wei\n", bscBalance)
+
+// Solana
+solBalance, _ := manager.GetBalance(ctx, web3.Solana, "7EqQdEULxWcraVx3mXKFjc84LhCkMGZCkRuDpvcMwJeK")
+fmt.Printf("SOL Balance: %s lamports\n", solBalance)
+
+// ===== 查询交易信息 =====
+tx, err := manager.GetTransaction(ctx, web3.Ethereum, "0xabc...")
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("From: %s\n", tx.From)
+fmt.Printf("To: %s\n", tx.To)
+fmt.Printf("Value: %s\n", tx.Value)
+fmt.Printf("Status: %s\n", tx.Status)
+
+// ===== 查询区块高度 =====
+client, _ := manager.GetClient(web3.Ethereum)
+blockNumber, _ := client.GetBlockNumber(ctx)
+fmt.Printf("Latest Block: %d\n", blockNumber)
+
+// ===== 查询钱包完整信息 =====
+walletInfo, err := web3.GetWalletInfo(ctx, web3.Ethereum, "0x742d35...")
+fmt.Printf("Balance: %s\n", walletInfo.Balance)
+fmt.Printf("Nonce: %d\n", walletInfo.Nonce)
+fmt.Printf("Code: %s\n", walletInfo.Code)
+
+// ===== Gas 价格查询（EVM 链）=====
+gasPrice, _ := client.GetGasPrice(ctx)
+fmt.Printf("Gas Price: %s gwei\n", gasPrice)
+
+// ===== 地址验证 =====
+if err := web3.ValidateAddress(web3.Bitcoin, "1A1zP1eP..."); err == nil {
+    fmt.Println("✅ Valid Bitcoin address")
+}
+
+// ===== 多链余额批量查询 =====
+addresses := web3.MultiChainAddress{
+    Bitcoin:  "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+    Ethereum: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+    BSC:      "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+    Solana:   "7EqQdEULxWcraVx3mXKFjc84LhCkMGZCkRuDpvcMwJeK",
+}
+
+balances, err := addresses.GetAllBalances(ctx)
+for chain, balance := range balances {
+    fmt.Printf("%s: %s\n", chain, balance)
+}
+```
+
+**环境变量配置**：
+
+```env
+# Ethereum
+WEB3_ETHEREUM_RPC=https://mainnet.infura.io/v3/YOUR-PROJECT-ID
+
+# BSC (Binance Smart Chain)
+WEB3_BSC_RPC=https://bsc-dataseed.binance.org/
+
+# Bitcoin
+WEB3_BITCOIN_RPC=https://bitcoin-mainnet.core.chainstack.com
+WEB3_BITCOIN_API_KEY=your_api_key
+
+# Solana
+WEB3_SOLANA_RPC=https://api.mainnet-beta.solana.com
+```
+
+**HTTP API 端点**：
+
+```bash
+# 查询余额
+curl http://localhost:8080/api/web3/ethereum/balance/0x742d35...
+
+# 查询交易
+curl http://localhost:8080/api/web3/ethereum/transaction/0xabc...
+
+# 查询区块高度
+curl http://localhost:8080/api/web3/ethereum/block-number
+
+# 查询钱包信息
+curl http://localhost:8080/api/web3/ethereum/wallet/0x742d35...
+
+# 验证地址
+curl http://localhost:8080/api/web3/bitcoin/validate/1A1zP1eP...
+
+# 支持的链列表
+curl http://localhost:8080/api/web3/chains
+```
+
+**CLI 命令**：
+
+```bash
+# 初始化 Web3 客户端
+artisan web3 init
+
+# 查询余额
+artisan web3 balance ethereum 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+artisan web3 balance bitcoin 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+
+# 查询交易
+artisan web3 transaction ethereum 0xabc123...
+
+# 查询区块高度
+artisan web3 block ethereum
+
+# 查询钱包信息
+artisan web3 wallet ethereum 0x742d35...
+
+# 验证地址
+artisan web3 validate bitcoin 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+
+# 列出支持的链
+artisan web3 chains
+```
+
+### 7. 加密货币交易所集成
+
+支持中心化交易所（CEX）和去中心化交易所（DEX）：
+
+#### 支持的交易所
+
+| 交易所 | 类型 | 特点 |
+|--------|------|------|
+| **Coinbase** | CEX | 美国合规交易所，适合法币出入金 |
+| **KuCoin** | CEX | 币种丰富，手续费低 |
+| **Hyperliquid** | DEX | 永续合约，高杠杆（50x），非托管 |
+
+#### 基本使用
+
+```go
+import "github.com/clarkgo/clarkgo/pkg/web3"
+
+// 初始化交易所客户端
+if err := web3.InitializeClients(); err != nil {
+    log.Fatal(err)
+}
+
+manager := web3.GetExchangeManager()
+ctx := context.Background()
+
+// ===== 查询单个币种余额 =====
+// Coinbase
+balance, _ := manager.GetBalance(ctx, web3.Coinbase, "BTC")
+fmt.Printf("Coinbase BTC: %s\n", balance)
+
+// KuCoin
+balance, _ = manager.GetBalance(ctx, web3.KuCoin, "ETH")
+fmt.Printf("KuCoin ETH: %s\n", balance)
+
+// Hyperliquid (DEX)
+balance, _ = manager.GetBalance(ctx, web3.Hyperliquid, "USDC")
+fmt.Printf("Hyperliquid USDC: %s\n", balance)
+
+// ===== 查询所有余额 =====
+balances, err := manager.GetBalances(ctx, web3.Coinbase)
+if err != nil {
+    log.Fatal(err)
+}
+for currency, amount := range balances {
+    fmt.Printf("%s: %s\n", currency, amount)
+}
+// 输出:
+// BTC: 0.5
+// ETH: 10.0
+// USD: 50000.0
+
+// ===== 查询交易对价格 =====
+// Coinbase
+price, _ := manager.GetPrice(ctx, web3.Coinbase, "BTC-USD")
+fmt.Printf("Coinbase BTC-USD: $%s\n", price)
+
+// KuCoin
+price, _ = manager.GetPrice(ctx, web3.KuCoin, "ETH-USDT")
+fmt.Printf("KuCoin ETH-USDT: $%s\n", price)
+
+// Hyperliquid
+price, _ = manager.GetPrice(ctx, web3.Hyperliquid, "BTC-USD")
+fmt.Printf("Hyperliquid BTC-USD: $%s\n", price)
+
+// ===== 跨交易所价格比较 =====
+prices, err := web3.GetAllExchangePrices(ctx, "BTC-USD")
+for exchange, price := range prices {
+    fmt.Printf("%s: $%s\n", exchange, price)
+}
+// 输出:
+// coinbase: 45678.90
+// kucoin: 45680.50
+// hyperliquid: 45675.20
+
+// ===== 跨交易所余额查询 =====
+balances, err = web3.GetAllExchangeBalances(ctx, "BTC")
+for exchange, balance := range balances {
+    fmt.Printf("%s: %s BTC\n", exchange, balance)
+}
+
+// ===== 获取支持的交易所列表 =====
+exchanges := manager.GetSupportedExchanges()
+fmt.Printf("Supported exchanges: %v\n", exchanges)
+```
+
+#### Hyperliquid 高级功能（DEX）
+
+Hyperliquid 作为去中心化永续合约交易所，提供额外功能：
+
+```go
+// 创建 Hyperliquid 客户端（需要以太坊私钥）
+privateKey := os.Getenv("EXCHANGE_HYPERLIQUID_PRIVATE_KEY")
+client, err := web3.NewHyperliquidClient(privateKey)
+if err != nil {
+    log.Fatal(err)
+}
+
+// ===== 查询持仓信息 =====
+positions, err := client.GetPositions(ctx)
+for _, pos := range positions {
+    fmt.Printf("币种: %s\n", pos.Coin)
+    fmt.Printf("  数量: %s\n", pos.Size)
+    fmt.Printf("  开仓价: %s\n", pos.EntryPrice)
+    fmt.Printf("  持仓价值: %s\n", pos.PositionValue)
+    fmt.Printf("  未实现盈亏: %s\n", pos.UnrealizedPnl)
+    fmt.Printf("  杠杆: %sx\n", pos.Leverage)
+    fmt.Printf("  清算价: %s\n", pos.Liquidation)
+}
+
+// ===== 查询资金费率 =====
+fundingRate, _ := client.GetFundingRate(ctx, "BTC")
+fmt.Printf("BTC Funding Rate: %s\n", fundingRate)
+
+// ===== 查询24小时交易量 =====
+volume, _ := client.Get24HVolume(ctx, "BTC")
+fmt.Printf("BTC 24H Volume: $%s\n", volume)
+
+// ===== 查询订单簿 =====
+orderBook, _ := client.GetOrderBook(ctx, "BTC")
+fmt.Printf("订单簿: %+v\n", orderBook)
+
+// ===== 下单交易 =====
+// 限价做多
+order := web3.OrderRequest{
+    Coin:       "BTC",
+    IsBuy:      true,
+    Size:       0.1,
+    LimitPrice: 45000.0,
+    ReduceOnly: false,
+}
+orderID, err := client.PlaceOrder(ctx, order)
+fmt.Printf("Order ID: %s\n", orderID)
+
+// 市价平仓
+closeOrder := web3.OrderRequest{
+    Coin:       "BTC",
+    IsBuy:      false,
+    Size:       0.1,
+    LimitPrice: 0,        // 0 表示市价
+    ReduceOnly: true,     // 只减仓
+}
+client.PlaceOrder(ctx, closeOrder)
+
+// 取消订单
+err = client.CancelOrder(ctx, "BTC", 12345)
+```
+
+**环境变量配置**：
+
+```env
+# Coinbase
+EXCHANGE_COINBASE_API_KEY=your_api_key
+EXCHANGE_COINBASE_API_SECRET=your_api_secret
+
+# KuCoin
+EXCHANGE_KUCOIN_API_KEY=your_api_key
+EXCHANGE_KUCOIN_API_SECRET=your_api_secret
+EXCHANGE_KUCOIN_PASSPHRASE=your_passphrase
+
+# Hyperliquid DEX (使用以太坊私钥)
+EXCHANGE_HYPERLIQUID_PRIVATE_KEY=your_ethereum_private_key_without_0x
+EXCHANGE_HYPERLIQUID_ADDRESS=your_ethereum_address
+```
+
+**HTTP API 端点**：
+
+```bash
+# 查询余额
+curl http://localhost:8080/api/exchange/coinbase/balance/BTC
+curl http://localhost:8080/api/exchange/hyperliquid/balance/USDC
+
+# 查询所有余额
+curl http://localhost:8080/api/exchange/coinbase/balances
+
+# 查询价格
+curl http://localhost:8080/api/exchange/coinbase/price/BTC-USD
+curl http://localhost:8080/api/exchange/hyperliquid/price/BTC-USD
+
+# 支持的交易所列表
+curl http://localhost:8080/api/exchange/supported
+
+# 跨交易所余额查询
+curl http://localhost:8080/api/exchange/all/balance/BTC
+
+# 跨交易所价格比较
+curl http://localhost:8080/api/exchange/all/price/BTC-USD
+```
+
+**CLI 命令**：
+
+```bash
+# 列出支持的交易所
+artisan exchange list
+
+# 查询余额
+artisan exchange balance coinbase BTC
+artisan exchange balance hyperliquid USDC
+
+# 查询所有余额
+artisan exchange balances coinbase
+
+# 查询价格
+artisan exchange price coinbase BTC-USD
+artisan exchange price hyperliquid BTC-USD
+
+# 跨交易所价格比较
+artisan exchange compare BTC-USD
+
+# 跨交易所余额查询
+artisan exchange balance-all BTC
+```
+
+**CEX vs DEX 对比**：
+
+| 特性 | CEX (Coinbase/KuCoin) | DEX (Hyperliquid) |
+|------|----------------------|-------------------|
+| **托管** | 托管（交易所保管） | 非托管（用户自己保管） |
+| **KYC** | 需要 | 不需要 |
+| **交易类型** | 现货 | 永续合约 |
+| **杠杆** | 3-10x | 最高 50x |
+| **认证** | API Key + Secret | 以太坊私钥签名 |
+| **手续费** | 0.1-0.5% | Maker -0.02%, Taker 0.05% |
+| **适用场景** | 法币出入金、简单交易 | 合约交易、高杠杆、隐私 |
+
+**安全提示**：
+
+- ⚠️ **CEX**: 只授予只读权限（View），不要授予提现权限
+- ⚠️ **DEX**: 使用专用钱包，不要使用主钱包的私钥
+- ⚠️ 私钥和 API 密钥永远不要硬编码，使用环境变量
+- ⚠️ 定期检查账户活动和 API 调用记录
+- ⚠️ 启用 IP 白名单（如果交易所支持）
+
+### 8. CMS 功能
 
 ```go
 // 用户认证
